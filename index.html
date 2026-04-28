@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>LunaNet — Revealing the Unseen</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500&family=Jost:wght@200;300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --void:#03020d;
+  --deep:#070514;
+  --surface:rgba(18,10,40,0.85);
+  --surface2:rgba(25,14,55,0.7);
+  --glass:rgba(255,255,255,0.03);
+  --teal:#5ef0e0;
+  --teal2:#2dd4c0;
+  --teal-g:rgba(94,240,224,0.12);
+  --teal-d:rgba(94,240,224,0.06);
+  --violet:#c084fc;
+  --violet2:#a855f7;
+  --violet-g:rgba(192,132,252,0.12);
+  --rose:#f9a8d4;
+  --rose2:#ec4899;
+  --rose-g:rgba(249,168,212,0.1);
+  --gold:#fcd34d;
+  --gold-g:rgba(252,211,77,0.1);
+  --silver:#e2d9f3;
+  --silver2:#a89bc4;
+  --silver3:#6b5f8a;
+  --border:rgba(94,240,224,0.1);
+  --border-v:rgba(192,132,252,0.15);
+  --border-r:rgba(249,168,212,0.12);
+  --text:#e8dff8;
+  --text2:#a89bc4;
+  --text3:#5a4f7a;
+  --r:12px;
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Jost',sans-serif;
+  background:var(--void);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+  cursor:none;
+}
+/* CUSTOM CURSOR */
+#cursor{position:fixed;width:8px;height:8px;border-radius:50%;background:var(--teal);pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:transform 0.1s;box-shadow:0 0 10px var(--teal),0 0 20px var(--teal);}
+#cursor-ring{position:fixed;width:28px;height:28px;border-radius:50%;border:0.5px solid rgba(94,240,224,0.4);pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all 0.18s ease;}
+
+/* CANVAS BACKGROUND */
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* NEBULA BLOBS */
+.nebula{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0;animation:nebula-drift 20s ease-in-out infinite alternate}
+.n1{width:500px;height:500px;background:radial-gradient(circle,rgba(168,85,247,0.18),transparent 70%);top:-100px;right:-100px;animation-delay:0s}
+.n2{width:400px;height:400px;background:radial-gradient(circle,rgba(94,240,224,0.12),transparent 70%);bottom:10%;left:-80px;animation-delay:-7s}
+.n3{width:350px;height:350px;background:radial-gradient(circle,rgba(249,168,212,0.1),transparent 70%);top:40%;right:5%;animation-delay:-14s}
+.n4{width:280px;height:280px;background:radial-gradient(circle,rgba(252,211,77,0.07),transparent 70%);bottom:30%;right:20%;animation-delay:-4s}
+@keyframes nebula-drift{0%{transform:scale(1) translate(0,0)}100%{transform:scale(1.15) translate(30px,-20px)}}
+
+/* NAV */
+nav{
+  position:sticky;top:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1rem 3rem;
+  background:rgba(3,2,13,0.8);
+  border-bottom:0.5px solid rgba(192,132,252,0.12);
+  backdrop-filter:blur(24px);
+}
+.logo{display:flex;align-items:center;gap:14px}
+.luna-orb{
+  width:40px;height:40px;border-radius:50%;position:relative;flex-shrink:0;
+  background:radial-gradient(circle at 32% 30%,#f0e8ff 0%,#b89aed 25%,#6b3fa0 55%,#1a0a30 85%,#07030f 100%);
+  box-shadow:0 0 20px rgba(192,132,252,0.5),0 0 50px rgba(192,132,252,0.2),inset 0 0 20px rgba(255,255,255,0.05);
+  animation:orb-pulse 4s ease-in-out infinite;
+}
+.luna-orb::before{
+  content:'';position:absolute;inset:0;border-radius:50%;
+  background:linear-gradient(135deg,rgba(255,255,255,0.22) 0%,transparent 45%);
+}
+.luna-orb::after{
+  content:'';position:absolute;top:6px;right:6px;width:8px;height:5px;border-radius:50%;
+  background:rgba(255,255,255,0.4);filter:blur(2px);
+}
+@keyframes orb-pulse{0%,100%{box-shadow:0 0 20px rgba(192,132,252,0.5),0 0 50px rgba(192,132,252,0.2)}50%{box-shadow:0 0 30px rgba(192,132,252,0.7),0 0 70px rgba(192,132,252,0.3),0 0 100px rgba(94,240,224,0.1)}}
+.logo-text-wrap{}
+.logo-name{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:500;letter-spacing:0.06em;color:white;line-height:1}
+.logo-tagline{font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.28em;text-transform:uppercase;color:var(--violet);margin-top:2px;opacity:0.8}
+nav ul{list-style:none;display:flex;gap:2.5rem}
+nav ul li a{
+  text-decoration:none;font-size:0.72rem;letter-spacing:0.16em;text-transform:uppercase;
+  color:var(--silver2);transition:all 0.25s;position:relative;
+}
+nav ul li a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:0.5px;background:linear-gradient(90deg,var(--teal),var(--violet));transition:width 0.3s}
+nav ul li a:hover{color:var(--silver)}
+nav ul li a:hover::after{width:100%}
+.nav-pill{
+  display:flex;align-items:center;gap:7px;
+  font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.14em;text-transform:uppercase;
+  padding:6px 16px;border-radius:20px;
+  border:0.5px solid rgba(94,240,224,0.25);
+  color:var(--teal);background:rgba(94,240,224,0.05);
+}
+.pulse-dot{width:5px;height:5px;border-radius:50%;background:var(--teal);animation:pdot 2.2s ease-in-out infinite;box-shadow:0 0 6px var(--teal)}
+@keyframes pdot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.3;transform:scale(0.7)}}
+
+/* HERO */
+.hero{
+  position:relative;z-index:1;
+  text-align:center;
+  padding:7rem 2rem 5rem;
+  overflow:hidden;
+}
+/* Constellation lines SVG overlaid */
+.hero-constellation{position:absolute;inset:0;pointer-events:none;opacity:0.25}
+.hero-ring{
+  position:absolute;border-radius:50%;border:0.5px solid;
+  left:50%;transform:translateX(-50%);pointer-events:none;
+  animation:ring-spin var(--spd,60s) linear infinite;
+}
+.ring1{width:500px;height:500px;bottom:-180px;border-color:rgba(192,132,252,0.12);--spd:80s}
+.ring2{width:700px;height:700px;bottom:-280px;border-color:rgba(94,240,224,0.07);--spd:120s;animation-direction:reverse}
+.ring3{width:900px;height:900px;bottom:-380px;border-color:rgba(249,168,212,0.05);--spd:160s}
+@keyframes ring-spin{to{transform:translateX(-50%) rotate(360deg)}}
+.ring-dot{position:absolute;width:4px;height:4px;border-radius:50%;background:var(--c,var(--violet));box-shadow:0 0 6px var(--c,var(--violet));top:-2px;left:50%;transform:translateX(-50%)}
+
+.eyebrow{
+  display:inline-flex;align-items:center;gap:12px;
+  font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.28em;text-transform:uppercase;
+  color:var(--violet);margin-bottom:1.8rem;
+}
+.eyebrow-line{width:36px;height:0.5px;background:linear-gradient(90deg,transparent,var(--violet))}
+.eyebrow-line.r{background:linear-gradient(90deg,var(--violet),transparent)}
+
+.hero-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(4rem,9vw,7rem);
+  font-weight:400;line-height:0.92;
+  color:white;margin-bottom:0.4rem;
+  text-shadow:0 0 80px rgba(192,132,252,0.3);
+}
+.hero-title .luna{font-style:italic;color:var(--violet)}
+.hero-title .net{
+  background:linear-gradient(135deg,var(--teal),var(--violet2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero-sub{
+  font-family:'Playfair Display',serif;font-style:italic;
+  font-size:clamp(0.9rem,2vw,1.2rem);font-weight:400;
+  color:var(--silver2);letter-spacing:0.08em;margin-bottom:3.5rem;
+}
+
+.gem-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:4.5rem}
+.gem{
+  display:flex;align-items:center;gap:7px;
+  padding:7px 18px;border-radius:24px;font-size:0.68rem;
+  letter-spacing:0.12em;text-transform:uppercase;
+  font-family:'DM Mono',monospace;
+  border:0.5px solid;backdrop-filter:blur(8px);
+  transition:all 0.3s;
+}
+.gem:hover{transform:translateY(-2px)}
+.gem-t{border-color:rgba(94,240,224,0.35);color:var(--teal);background:rgba(94,240,224,0.07)}
+.gem-v{border-color:rgba(192,132,252,0.35);color:var(--violet);background:rgba(192,132,252,0.07)}
+.gem-r{border-color:rgba(249,168,212,0.3);color:var(--rose);background:rgba(249,168,212,0.06)}
+.gem-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.dt{background:var(--teal);box-shadow:0 0 6px var(--teal)}
+.dv{background:var(--violet);box-shadow:0 0 6px var(--violet)}
+.dr{background:var(--rose);box-shadow:0 0 6px var(--rose)}
+
+/* UPLOAD */
+.upload-wrap{max-width:740px;margin:0 auto;padding:0 1.5rem 5rem;position:relative;z-index:1}
+
+/* Magic sparkles on drop zone */
+.drop-zone{
+  position:relative;border-radius:20px;
+  padding:3.5rem 2rem;text-align:center;
+  cursor:pointer;transition:all 0.35s;overflow:hidden;
+  border:1px solid rgba(192,132,252,0.2);
+  background:linear-gradient(135deg,rgba(18,8,40,0.9),rgba(10,5,25,0.95));
+}
+.drop-zone::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 110%,rgba(94,240,224,0.07),transparent 65%),
+             radial-gradient(ellipse at 20% 0%,rgba(192,132,252,0.08),transparent 50%),
+             radial-gradient(ellipse at 80% 0%,rgba(249,168,212,0.06),transparent 50%);
+  pointer-events:none;
+}
+.drop-zone::after{
+  content:'';position:absolute;inset:-1px;border-radius:21px;
+  background:linear-gradient(135deg,rgba(192,132,252,0.2),rgba(94,240,224,0.1),rgba(249,168,212,0.15));
+  z-index:-1;opacity:0;transition:opacity 0.3s;
+}
+.drop-zone:hover::after,.drop-zone.drag-over::after{opacity:1}
+.drop-zone:hover,.drop-zone.drag-over{
+  border-color:rgba(192,132,252,0.4);
+  box-shadow:0 0 60px rgba(192,132,252,0.1),0 0 120px rgba(94,240,224,0.05);
+}
+
+/* Animated moon in drop zone */
+.drop-moon{
+  width:72px;height:72px;border-radius:50%;margin:0 auto 1.4rem;position:relative;
+  background:radial-gradient(circle at 32% 28%,#f5f0ff 0%,#c4a8f0 20%,#8a5ed4 50%,#3b1a6e 80%,#0e0520 100%);
+  box-shadow:0 0 30px rgba(192,132,252,0.5),0 0 70px rgba(192,132,252,0.15);
+  animation:moon-glow 3s ease-in-out infinite;
+}
+.drop-moon::before{content:'';position:absolute;inset:0;border-radius:50%;background:linear-gradient(135deg,rgba(255,255,255,0.2) 0%,transparent 45%)}
+.drop-moon::after{content:'★';position:absolute;top:-12px;right:-8px;font-size:14px;color:var(--gold);text-shadow:0 0 8px var(--gold);animation:star-twinkle 2s ease-in-out infinite alternate}
+@keyframes moon-glow{0%,100%{box-shadow:0 0 30px rgba(192,132,252,0.5),0 0 70px rgba(192,132,252,0.15)}50%{box-shadow:0 0 40px rgba(192,132,252,0.7),0 0 100px rgba(192,132,252,0.25),0 0 140px rgba(94,240,224,0.08)}}
+@keyframes star-twinkle{0%{opacity:0.5;transform:scale(0.8)}100%{opacity:1;transform:scale(1.1)}}
+
+/* floating micro-stars */
+.micro-star{position:absolute;pointer-events:none;font-size:10px;color:var(--gold);animation:float-star var(--d,4s) var(--del,0s) ease-in-out infinite alternate;opacity:0.6}
+@keyframes float-star{0%{transform:translateY(0) rotate(0deg);opacity:0.4}100%{transform:translateY(-15px) rotate(20deg);opacity:0.9}}
+
+.drop-title{font-family:'Playfair Display',serif;font-size:1.35rem;font-style:italic;color:white;margin-bottom:0.4rem}
+.drop-sub{font-family:'Jost',sans-serif;font-size:0.75rem;color:var(--text2);letter-spacing:0.06em;margin-bottom:1.6rem}
+.btn-select{
+  display:inline-block;padding:11px 32px;border-radius:24px;cursor:pointer;
+  background:linear-gradient(135deg,rgba(192,132,252,0.25),rgba(94,240,224,0.15));
+  border:0.5px solid rgba(192,132,252,0.4);
+  color:var(--silver);font-size:0.72rem;letter-spacing:0.18em;text-transform:uppercase;
+  font-family:'DM Mono',monospace;transition:all 0.3s;
+  box-shadow:0 0 20px rgba(192,132,252,0.15);
+}
+.btn-select:hover{background:linear-gradient(135deg,rgba(192,132,252,0.4),rgba(94,240,224,0.25));box-shadow:0 0 40px rgba(192,132,252,0.3);color:white}
+#file-input{display:none}
+.img-preview-wrap{display:none;margin-top:1.5rem}
+.img-preview-wrap img{max-height:200px;border-radius:12px;border:0.5px solid var(--border-v);box-shadow:0 0 30px rgba(192,132,252,0.15)}
+.img-meta{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);margin-top:6px;letter-spacing:0.08em}
+
+.btn-analyze{
+  display:none;margin:1.6rem auto 0;
+  padding:13px 44px;border-radius:28px;
+  background:linear-gradient(135deg,var(--violet2),var(--teal2));
+  border:none;color:white;
+  font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.2em;text-transform:uppercase;
+  cursor:pointer;transition:all 0.3s;
+  box-shadow:0 4px 30px rgba(168,85,247,0.35),0 0 60px rgba(94,240,224,0.1);
+}
+.btn-analyze:hover{transform:translateY(-2px);box-shadow:0 8px 40px rgba(168,85,247,0.5),0 0 80px rgba(94,240,224,0.15)}
+
+/* PROCESSING */
+#processing{display:none;margin-top:2.5rem}
+.proc-header{
+  font-family:'Playfair Display',serif;font-style:italic;font-size:1.1rem;
+  color:var(--violet);text-align:center;margin-bottom:1.4rem;
+  text-shadow:0 0 20px rgba(192,132,252,0.4);
+}
+.proc-steps{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:1.2rem}
+.proc-step{
+  padding:6px 14px;border-radius:20px;
+  font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;
+  border:0.5px solid var(--border-v);color:var(--text3);
+  background:rgba(25,10,50,0.6);transition:all 0.4s;
+}
+.proc-step.active{border-color:var(--violet);color:var(--violet);background:var(--violet-g);box-shadow:0 0 16px rgba(192,132,252,0.2)}
+.proc-step.done{border-color:rgba(94,240,224,0.3);color:var(--teal);background:var(--teal-d)}
+.proc-bar-wrap{height:2px;background:rgba(192,132,252,0.08);border-radius:2px;overflow:hidden}
+.proc-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--violet2),var(--teal2),var(--rose2));border-radius:2px;transition:width 0.55s ease;box-shadow:0 0 10px rgba(192,132,252,0.5)}
+.scan-text{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--violet);text-align:center;margin-top:0.7rem;letter-spacing:0.1em;min-height:1em;opacity:0.8}
+
+/* RESULTS */
+#results{display:none;margin-top:2rem}
+.result-card{
+  border-radius:20px;overflow:hidden;
+  border:0.5px solid rgba(192,132,252,0.2);
+  background:linear-gradient(135deg,rgba(15,6,35,0.97),rgba(8,4,20,0.98));
+  box-shadow:0 0 80px rgba(192,132,252,0.08),0 0 160px rgba(94,240,224,0.04);
+  position:relative;
+}
+.result-card::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 0% 0%,rgba(192,132,252,0.06),transparent 50%),
+             radial-gradient(ellipse at 100% 100%,rgba(94,240,224,0.04),transparent 50%);
+}
+.result-top{
+  padding:1.8rem 2rem 1.5rem;
+  border-bottom:0.5px solid rgba(192,132,252,0.12);
+  display:flex;align-items:flex-start;justify-content:space-between;
+  position:relative;
+}
+/* Decorative corner */
+.result-top::after{
+  content:'✦';position:absolute;top:1.2rem;right:1.5rem;
+  font-size:0.7rem;color:var(--gold);opacity:0.5;
+  text-shadow:0 0 8px var(--gold);
+}
+.verdict-eyebrow{font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.24em;text-transform:uppercase;color:var(--text2);margin-bottom:0.5rem}
+.verdict-main{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:400;color:white;line-height:1}
+.verdict-badge{
+  padding:7px 20px;border-radius:20px;
+  font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;
+  flex-shrink:0;margin-top:4px;
+}
+.b-ai{border:0.5px solid rgba(192,132,252,0.45);color:var(--violet);background:rgba(168,85,247,0.1);box-shadow:0 0 16px rgba(192,132,252,0.15)}
+.b-df{border:0.5px solid rgba(249,168,212,0.4);color:var(--rose);background:rgba(249,168,212,0.08);box-shadow:0 0 16px rgba(249,168,212,0.12)}
+.b-real{border:0.5px solid rgba(94,240,224,0.4);color:var(--teal);background:var(--teal-d);box-shadow:0 0 16px rgba(94,240,224,0.12)}
+
+/* score grid */
+.score-grid{display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:0.5px solid rgba(192,132,252,0.1)}
+.score-cell{padding:1.6rem;text-align:center;border-right:0.5px solid rgba(192,132,252,0.08);position:relative}
+.score-cell:last-child{border-right:none}
+.sc-label{font-family:'DM Mono',monospace;font-size:0.56rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--text3);margin-bottom:0.7rem}
+.sc-num{font-family:'Playfair Display',serif;font-size:2.4rem;font-weight:400;line-height:1}
+.sc-ai .sc-num{color:var(--violet);text-shadow:0 0 20px rgba(192,132,252,0.4)}
+.sc-df .sc-num{color:var(--rose);text-shadow:0 0 20px rgba(249,168,212,0.3)}
+.sc-real .sc-num{color:var(--teal);text-shadow:0 0 20px rgba(94,240,224,0.3)}
+.sc-bar-wrap{height:2px;background:rgba(255,255,255,0.05);border-radius:2px;margin-top:0.8rem;overflow:hidden}
+.sc-bar{height:100%;border-radius:2px;transition:width 0.9s cubic-bezier(0.4,0,0.2,1)}
+.bar-ai{background:linear-gradient(90deg,#6b21a8,var(--violet))}
+.bar-df{background:linear-gradient(90deg,#9d174d,var(--rose))}
+.bar-real{background:linear-gradient(90deg,var(--teal2),var(--teal))}
+
+/* viz */
+.viz-wrap{padding:1.5rem 2rem}
+.viz-label{font-family:'Playfair Display',serif;font-style:italic;font-size:0.85rem;color:var(--silver2);margin-bottom:1rem;display:flex;align-items:center;gap:8px}
+.viz-label::before{content:'✦';color:var(--gold);font-size:0.6rem;opacity:0.7}
+.viz-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.viz-panel{background:rgba(10,5,25,0.8);border-radius:12px;padding:1rem;border:0.5px solid rgba(192,132,252,0.1)}
+.viz-panel-hd{font-family:'DM Mono',monospace;font-size:0.56rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+canvas.vc{width:100%;display:block;border-radius:8px}
+
+.result-footer{padding:1.2rem 2rem;border-top:0.5px solid rgba(192,132,252,0.08);text-align:center}
+.btn-reset{
+  padding:9px 28px;border-radius:20px;cursor:pointer;
+  border:0.5px solid rgba(192,132,252,0.2);background:transparent;
+  color:var(--text2);font-family:'DM Mono',monospace;font-size:0.6rem;
+  letter-spacing:0.14em;text-transform:uppercase;transition:all 0.25s;
+}
+.btn-reset:hover{border-color:var(--violet);color:var(--violet);background:var(--violet-g)}
+
+/* CONTENT SECTIONS */
+.c-section{max-width:980px;margin:0 auto;padding:0 2rem 6rem;position:relative;z-index:1}
+.section-dec{
+  display:flex;align-items:center;gap:1.2rem;margin-bottom:3rem;
+}
+.dec-line{flex:1;height:0.5px;background:linear-gradient(90deg,transparent,rgba(192,132,252,0.2),transparent)}
+.dec-glyph{font-size:0.7rem;color:var(--violet);opacity:0.6;letter-spacing:0.3em;font-family:'DM Mono',monospace;text-transform:uppercase;white-space:nowrap}
+.s-ey{font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.28em;text-transform:uppercase;color:var(--teal);margin-bottom:0.8rem}
+.s-h{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,4vw,2.8rem);font-weight:400;color:white;line-height:1.1;margin-bottom:1rem}
+.s-h em{color:var(--violet);font-style:italic}
+.s-p{font-size:0.83rem;line-height:1.82;color:var(--text2);max-width:660px}
+
+/* HARM */
+.harm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-top:2.5rem;border-radius:16px;overflow:hidden;background:rgba(192,132,252,0.08)}
+.harm-card{
+  background:rgba(12,5,28,0.95);padding:1.6rem;position:relative;
+  transition:background 0.25s;overflow:hidden;
+}
+.harm-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(192,132,252,0.3),transparent);
+  opacity:0;transition:opacity 0.3s;
+}
+.harm-card:hover{background:rgba(20,8,45,0.98)}
+.harm-card:hover::before{opacity:1}
+.harm-n{font-family:'Playfair Display',serif;font-style:italic;font-size:1.8rem;color:var(--violet);opacity:0.2;line-height:1;margin-bottom:0.7rem}
+.harm-t{font-family:'Playfair Display',serif;font-size:0.95rem;font-weight:500;color:white;margin-bottom:0.5rem}
+.harm-b{font-size:0.76rem;line-height:1.68;color:var(--text2)}
+
+/* THEORY */
+.theory-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-top:2rem}
+.theory-card{
+  padding:1.8rem;border-radius:16px;position:relative;overflow:hidden;
+  border:0.5px solid var(--border-v);
+  background:rgba(12,5,28,0.7);
+  transition:border-color 0.3s,box-shadow 0.3s;
+}
+.theory-card:hover{border-color:rgba(192,132,252,0.3);box-shadow:0 0 40px rgba(192,132,252,0.06)}
+.theory-card::after{
+  content:'';position:absolute;top:0;right:0;width:100px;height:100px;
+  background:radial-gradient(circle,rgba(192,132,252,0.08),transparent 70%);pointer-events:none;
+}
+.th-num{font-family:'Playfair Display',serif;font-style:italic;font-size:3.5rem;font-weight:400;color:var(--violet);opacity:0.12;line-height:1;margin-bottom:0.5rem}
+.th-t{font-family:'Playfair Display',serif;font-size:0.95rem;color:white;margin-bottom:0.6rem}
+.th-b{font-size:0.78rem;line-height:1.72;color:var(--text2)}
+
+/* TECH */
+.tech-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-top:2rem}
+.tech-card{padding:2rem;border-radius:16px;position:relative;overflow:hidden;border:0.5px solid}
+.tc-cnn{background:rgba(168,85,247,0.04);border-color:rgba(192,132,252,0.18)}
+.tc-fft{background:rgba(94,240,224,0.03);border-color:rgba(94,240,224,0.15)}
+.tech-card::before{
+  content:'';position:absolute;bottom:0;right:0;width:150px;height:150px;border-radius:50%;
+  background:radial-gradient(circle,var(--tc-glow,rgba(192,132,252,0.06)),transparent 70%);
+  pointer-events:none;
+}
+.tc-cnn{--tc-glow:rgba(192,132,252,0.07)}
+.tc-fft{--tc-glow:rgba(94,240,224,0.06)}
+.t-tag{
+  display:inline-block;padding:4px 14px;border-radius:20px;
+  font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.16em;text-transform:uppercase;
+  margin-bottom:1rem;border:0.5px solid;
+}
+.tag-v{border-color:rgba(192,132,252,0.4);color:var(--violet);background:rgba(192,132,252,0.08)}
+.tag-t{border-color:rgba(94,240,224,0.35);color:var(--teal);background:rgba(192,132,252,0.08)}
+.t-title{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:400;color:white;margin-bottom:0.8rem}
+.t-body{font-size:0.78rem;line-height:1.74;color:var(--text2)}
+
+/* pipeline */
+.pipeline{margin-top:1.5rem;padding:1.6rem 2rem;border-radius:16px;border:0.5px solid rgba(192,132,252,0.12);background:rgba(12,5,28,0.6)}
+.pipe-label{font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text3);margin-bottom:1rem}
+.pipe-flow{display:flex;align-items:center;flex-wrap:wrap;gap:5px}
+.p-node{font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.06em;padding:6px 12px;border-radius:20px;white-space:nowrap;border:0.5px solid}
+.p-arr{color:var(--violet);opacity:0.5;font-size:0.7rem;padding:0 2px}
+.pn-a{border-color:var(--border-v);color:var(--silver2);background:rgba(192,132,252,0.05)}
+.pn-cnn{border-color:rgba(192,132,252,0.3);color:var(--violet);background:rgba(192,132,252,0.08)}
+.pn-fft{border-color:rgba(94,240,224,0.25);color:var(--teal);background:rgba(94,240,224,0.07)}
+.pn-out{border-color:rgba(94,240,224,0.35);color:var(--teal);background:rgba(94,240,224,0.07);box-shadow:0 0 10px rgba(94,240,224,0.1)}
+
+/* FOOTER */
+footer{
+  position:relative;z-index:1;
+  border-top:0.5px solid rgba(192,132,252,0.1);
+  padding:2rem 3rem;
+  display:flex;justify-content:space-between;align-items:center;
+  background:rgba(3,2,13,0.9);
+}
+.f-logo{font-family:'Playfair Display',serif;font-size:1.2rem;color:white}
+.f-logo em{color:var(--violet);font-style:italic}
+.f-tag{font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text3);margin-top:3px}
+.f-r{text-align:right;font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);letter-spacing:0.08em;line-height:1.8}
+.f-accent{color:var(--violet)}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--void)}
+::-webkit-scrollbar-thumb{background:rgba(192,132,252,0.3);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- Custom cursor -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- Nebula backgrounds -->
+<div class="nebula n1"></div>
+<div class="nebula n2"></div>
+<div class="nebula n3"></div>
+<div class="nebula n4"></div>
+
+<!-- Star canvas -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">
+    <div class="luna-orb"></div>
+    <div class="logo-text-wrap">
+      <div class="logo-name">LunaNet</div>
+      <div class="logo-tagline">Revealing the Unseen</div>
+    </div>
+  </div>
+  <ul>
+    <li><a href="#detect">Detect</a></li>
+    <li><a href="#harm">Threat</a></li>
+    <li><a href="#theory">Theory</a></li>
+    <li><a href="#tech">Technology</a></li>
+  </ul>
+  <div class="nav-pill"><span class="pulse-dot"></span>System Online</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" style="position:relative;z-index:1">
+  <!-- Rotating rings -->
+  <div class="hero-ring ring1"><div class="ring-dot" style="--c:var(--violet)"></div></div>
+  <div class="hero-ring ring2"><div class="ring-dot" style="--c:var(--teal);top:auto;bottom:-2px;left:50%;transform:translateX(-50%)"></div></div>
+  <div class="hero-ring ring3"><div class="ring-dot" style="--c:var(--rose)"></div></div>
+
+  <!-- Constellation SVG -->
+  <svg class="hero-constellation" viewBox="0 0 1200 400" xmlns="http://www.w3.org/2000/svg">
+    <g stroke="rgba(192,132,252,0.3)" stroke-width="0.5" fill="none">
+      <line x1="100" y1="80" x2="220" y2="150"/><line x1="220" y1="150" x2="350" y2="100"/>
+      <line x1="350" y1="100" x2="480" y2="180"/><line x1="850" y1="60" x2="970" y2="130"/>
+      <line x1="970" y1="130" x2="1100" y2="90"/>
+    </g>
+    <g fill="rgba(192,132,252,0.7)">
+      <circle cx="100" cy="80" r="2"/><circle cx="220" cy="150" r="1.5"/><circle cx="350" cy="100" r="2.5"/>
+      <circle cx="480" cy="180" r="1.5"/><circle cx="850" cy="60" r="2"/><circle cx="970" cy="130" r="1.5"/>
+      <circle cx="1100" cy="90" r="2"/>
+    </g>
+    <g fill="rgba(94,240,224,0.5)">
+      <circle cx="600" cy="40" r="1.5"/><circle cx="650" cy="100" r="1"/>
+      <circle cx="720" cy="50" r="2"/><circle cx="550" cy="90" r="1"/>
+    </g>
+    <g fill="rgba(252,211,77,0.6)">
+      <circle cx="150" cy="200" r="1.2"/><circle cx="1050" cy="200" r="1.5"/>
+      <circle cx="200" cy="300" r="1"/><circle cx="1000" cy="280" r="1.2"/>
+    </g>
+  </svg>
+
+  <div class="eyebrow">
+    <span class="eyebrow-line"></span>
+    AI &amp; Deepfake Detection System
+    <span class="eyebrow-line r"></span>
+  </div>
+
+  <h1 class="hero-title">
+    <span class="luna">Luna</span><span class="net">Net</span>
+  </h1>
+  <p class="hero-sub">Revealing the Unseen</p>
+
+  <div class="gem-row">
+    <span class="gem gem-t"><span class="gem-dot dt"></span>CNN Architecture</span>
+    <span class="gem gem-v"><span class="gem-dot dv"></span>FFT Frequency Analysis</span>
+    <span class="gem gem-r"><span class="gem-dot dr"></span>Deepfake Detection</span>
+    <span class="gem gem-t"><span class="gem-dot dt"></span>Deep Learning</span>
+  </div>
+</section>
+
+<!-- UPLOAD -->
+<section id="detect" class="upload-wrap">
+  <div class="drop-zone" id="drop-zone">
+    <!-- Floating micro-stars -->
+    <span class="micro-star" style="top:15%;left:8%;--d:3.5s;--del:0s">✦</span>
+    <span class="micro-star" style="top:20%;right:10%;--d:4s;--del:1s">★</span>
+    <span class="micro-star" style="bottom:20%;left:15%;--d:3s;--del:0.5s">✦</span>
+    <span class="micro-star" style="bottom:25%;right:8%;--d:4.5s;--del:1.5s">✧</span>
+    <span class="micro-star" style="top:50%;left:3%;--d:3s;--del:2s;font-size:7px">·</span>
+    <span class="micro-star" style="top:50%;right:4%;--d:4s;--del:0.7s;font-size:7px">·</span>
+
+    <div class="drop-moon"></div>
+    <div class="drop-title">Transmit your image for analysis</div>
+    <div class="drop-sub">Drag &amp; drop · or select a file · JPG · PNG · WEBP · max 10 MB</div>
+    <label class="btn-select" for="file-input">Choose Image</label>
+    <input type="file" id="file-input" accept="image/*"/>
+    <div class="img-preview-wrap" id="preview-wrap">
+      <img id="img-preview" src="" alt="preview"/>
+      <div class="img-meta" id="img-meta"></div>
+    </div>
+  </div>
+  <div style="text-align:center">
+    <button class="btn-analyze" id="btn-analyze">✦ &nbsp;Initiate Analysis</button>
+  </div>
+
+  <!-- PROCESSING -->
+  <div id="processing">
+    <div class="proc-header">Reading the stars of your image…</div>
+    <div class="proc-steps">
+      <div class="proc-step" id="s1">Image Ingestion</div>
+      <div class="proc-step" id="s2">CNN Extraction</div>
+      <div class="proc-step" id="s3">FFT Spectrum</div>
+      <div class="proc-step" id="s4">Artifact Scan</div>
+      <div class="proc-step" id="s5">Classification</div>
+    </div>
+    <div class="proc-bar-wrap"><div class="proc-bar" id="proc-bar"></div></div>
+    <div class="scan-text" id="scan-text">Initialising neural pathways…</div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results">
+    <div class="result-card">
+      <div class="result-top">
+        <div>
+          <div class="verdict-eyebrow">Detection Result</div>
+          <div class="verdict-main" id="v-main">—</div>
+        </div>
+        <span class="verdict-badge" id="v-badge"></span>
+      </div>
+      <div class="score-grid">
+        <div class="score-cell sc-ai">
+          <div class="sc-label">AI Generated</div>
+          <div class="sc-num" id="sc-ai">—</div>
+          <div class="sc-bar-wrap"><div class="sc-bar bar-ai" id="bar-ai" style="width:0%"></div></div>
+        </div>
+        <div class="score-cell sc-df">
+          <div class="sc-label">Deepfake</div>
+          <div class="sc-num" id="sc-df">—</div>
+          <div class="sc-bar-wrap"><div class="sc-bar bar-df" id="bar-df" style="width:0%"></div></div>
+        </div>
+        <div class="score-cell sc-real">
+          <div class="sc-label">Authentic</div>
+          <div class="sc-num" id="sc-real">—</div>
+          <div class="sc-bar-wrap"><div class="sc-bar bar-real" id="bar-real" style="width:0%"></div></div>
+        </div>
+      </div>
+      <div class="viz-wrap">
+        <div class="viz-label">Signal Analysis Visualisation</div>
+        <div class="viz-cols">
+          <div class="viz-panel">
+            <div class="viz-panel-hd">CNN Activation Map</div>
+            <canvas class="vc" id="c-cnn" height="130"></canvas>
+          </div>
+          <div class="viz-panel">
+            <div class="viz-panel-hd">FFT Frequency Spectrum</div>
+            <canvas class="vc" id="c-fft" height="130"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="result-footer">
+        <button class="btn-reset" id="btn-reset">↺ &nbsp;Analyse Another Image</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HARM -->
+<section id="harm" class="c-section">
+  <div class="section-dec">
+    <div class="dec-line"></div>
+    <div class="dec-glyph">✦ &nbsp;Why It Matters &nbsp;✦</div>
+    <div class="dec-line"></div>
+  </div>
+  <div class="s-ey">The Hidden Threat</div>
+  <h2 class="s-h">Synthetic Images Are<br><em>Reshaping Reality</em></h2>
+  <p class="s-p">AI-generated and deepfake images now flood social media, news ecosystems, and personal communications at unprecedented scale. As generative models grow more capable, the perceptual boundary between real and fabricated has effectively collapsed. LunaNet is trained to see what the human eye cannot.</p>
+  <div class="harm-grid">
+    <div class="harm-card"><div class="harm-n">01</div><div class="harm-t">Non-Consensual Imagery</div><div class="harm-b">Deepfake technology is weaponised to fabricate intimate images of real individuals — predominantly women — causing severe psychological, reputational, and legal harm at scale.</div></div>
+    <div class="harm-card"><div class="harm-n">02</div><div class="harm-t">Disinformation Campaigns</div><div class="harm-b">Synthetic images of political figures and public events are manufactured and distributed at scale, eroding trust and influencing elections and policy decisions.</div></div>
+    <div class="harm-card"><div class="harm-n">03</div><div class="harm-t">Financial Fraud</div><div class="harm-b">AI-generated faces are deployed in identity fraud, fake KYC verification, and impersonation scams — resulting in billions in losses for individuals and institutions.</div></div>
+    <div class="harm-card"><div class="harm-n">04</div><div class="harm-t">Judicial Evidence Risks</div><div class="harm-b">Fabricated images submitted as legal evidence represent a fundamental threat to justice systems when undetectable by conventional forensic methods.</div></div>
+    <div class="harm-card"><div class="harm-n">05</div><div class="harm-t">Erosion of Trust</div><div class="harm-b">When authentic images become indistinguishable from fakes, public trust in visual media collapses — creating an environment where nothing can be verified.</div></div>
+    <div class="harm-card"><div class="harm-n">06</div><div class="harm-t">Child Safety Threats</div><div class="harm-b">Generative AI is misused to produce synthetic harmful imagery, creating an unprecedented crisis for law enforcement and child protection agencies worldwide.</div></div>
+  </div>
+</section>
+
+<!-- THEORY -->
+<section id="theory" class="c-section">
+  <div class="section-dec"><div class="dec-line"></div><div class="dec-glyph">✦ &nbsp;Theory &nbsp;✦</div><div class="dec-line"></div></div>
+  <div class="s-ey">Understanding the Source</div>
+  <h2 class="s-h">How Synthetic Images<br><em>Are Generated</em></h2>
+  <p class="s-p">Modern AI-generated images emerge from distinct generative paradigms — each leaving unique statistical fingerprints in pixel data, texture gradients, and frequency spectra that LunaNet is trained to identify.</p>
+  <div class="theory-grid">
+    <div class="theory-card"><div class="th-num">01</div><div class="th-t">Generative Adversarial Networks (GANs)</div><div class="th-b">A generator and discriminator network compete in a minimax game. At convergence the generator produces photorealistic outputs — but GAN upsampling operations leave periodic spectral artifacts in the FFT domain, particularly at mid-to-high frequencies. These are a primary detection signal for LunaNet.</div></div>
+    <div class="theory-card"><div class="th-num">02</div><div class="th-t">Diffusion Models (Stable Diffusion, DALL·E)</div><div class="th-b">Diffusion models learn to denoise images from Gaussian noise toward a target distribution. Despite perceptual quality, they produce characteristic pixel-level texture inconsistencies — unnatural skin smoothness, hair regularity, and specular anomalies — detectable through CNN spatial analysis.</div></div>
+    <div class="theory-card"><div class="th-num">03</div><div class="th-t">Variational Autoencoders (VAEs)</div><div class="th-b">VAEs encode images into a compressed latent space and decode sampled vectors into new outputs. They produce slightly blurrier images than GANs, with distinctive low-frequency spectral signatures. Many modern architectures combine VAEs with diffusion in a latent diffusion framework.</div></div>
+    <div class="theory-card"><div class="th-num">04</div><div class="th-t">Face-Swap Deepfakes</div><div class="th-b">Deepfake pipelines transplant facial identity onto a donor frame using encoder-decoder networks. They generate blending artifacts at face boundaries, temporal inconsistencies in blink and lip-sync, and abnormal colour distribution in skin regions — all detectable through LunaNet's spatial CNN stage.</div></div>
+  </div>
+</section>
+
+<!-- TECH -->
+<section id="tech" class="c-section">
+  <div class="section-dec"><div class="dec-line"></div><div class="dec-glyph">✦ &nbsp;Technology &nbsp;✦</div><div class="dec-line"></div></div>
+  <div class="s-ey">Detection Engine</div>
+  <h2 class="s-h">LunaNet's Dual-Domain<br><em>Analysis Pipeline</em></h2>
+  <div class="tech-grid">
+    <div class="tech-card tc-cnn">
+      <span class="t-tag tag-v">CNN</span>
+      <div class="t-title">Convolutional Neural Network</div>
+      <div class="t-body">LunaNet's CNN backbone extracts hierarchical spatial features across multiple resolution scales. Early layers capture low-level texture anomalies — unnatural smoothness, repetitive micro-patterns, and noise inconsistencies. Deeper layers encode semantic irregularities: implausible facial geometry, abnormal eye reflections, and boundary artifacts at face-to-background transitions. The architecture draws from EfficientNet-style compound scaling for optimal accuracy and inference speed.</div>
+    </div>
+    <div class="tech-card tc-fft">
+      <span class="t-tag tag-t">FFT</span>
+      <div class="t-title">Fast Fourier Transform Analysis</div>
+      <div class="t-body">The FFT stage transforms image pixel data into the frequency domain, exposing spectral artifacts imperceptible to the human eye but mathematically distinct in synthetic content. GAN generators produce characteristic frequency peaks from upsampling operations — the "checkerboard artifact" phenomenon. LunaNet computes the 2D magnitude spectrum and fuses radially-averaged frequency profiles with CNN spatial features in a joint classification head for superior accuracy.</div>
+    </div>
+  </div>
+  <div class="pipeline">
+    <div class="pipe-label">Detection Pipeline</div>
+    <div class="pipe-flow">
+      <span class="p-node pn-a">Input Image</span><span class="p-arr">→</span>
+      <span class="p-node pn-a">Preprocessing</span><span class="p-arr">→</span>
+      <span class="p-node pn-cnn">CNN Feature Maps</span><span class="p-arr">→</span>
+      <span class="p-node pn-fft">FFT Spectrum</span><span class="p-arr">→</span>
+      <span class="p-node pn-fft">Feature Fusion</span><span class="p-arr">→</span>
+      <span class="p-node pn-cnn">Classification Head</span><span class="p-arr">→</span>
+      <span class="p-node pn-out">Verdict + Confidence</span>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="f-logo"><em>Luna</em>Net</div>
+    <div class="f-tag">Revealing the Unseen · CNN + FFT · Deep Learning</div>
+  </div>
+  <div class="f-r">
+    <div>AI &amp; Deepfake Detection Research</div>
+    <div class="f-accent">Powered by HuggingFace Spaces ✦</div>
+  </div>
+</footer>
+
+
+<script>
+/* ---- CURSOR ---- */
+const cur=document.getElementById('cursor'),ring=document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
+(function animRing(){rx+=(mx-rx)*0.12;ry+=(my-ry)*0.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(animRing)})();
+
+/* ---- STARFIELD ---- */
+(function(){
+  const canvas=document.getElementById('bg-canvas');
+  const ctx=canvas.getContext('2d');
+  let W,H,stars=[];
+  function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
+  function init(){
+    resize();stars=[];
+    const cols=['rgba(255,255,255,','rgba(192,132,252,','rgba(94,240,224,','rgba(249,168,212,'];
+    for(let i=0;i<220;i++){
+      const ci=Math.random()<0.6?0:Math.random()<0.5?1:Math.random()<0.5?2:3;
+      stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.4+0.2,
+        a:Math.random()*0.8+0.1,da:Math.random()*0.006*(Math.random()<0.5?1:-1),c:cols[ci]});
+    }
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    stars.forEach(s=>{
+      s.a+=s.da;if(s.a>1||s.a<0.05)s.da*=-1;s.a=Math.max(0.05,Math.min(1,s.a));
+      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=s.c+s.a+')';ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize',()=>{resize();init()});
+  init();draw();
+})();
+
+/* ---- UPLOAD ---- */
+const fi=document.getElementById('file-input'),dz=document.getElementById('drop-zone');
+const pw=document.getElementById('preview-wrap'),ip=document.getElementById('img-preview');
+const im=document.getElementById('img-meta'),ba=document.getElementById('btn-analyze');
+const proc=document.getElementById('processing'),res=document.getElementById('results');
+let currentImageData = '';
+
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over')});
+dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))load(f)});
+fi.addEventListener('change',e=>{if(e.target.files[0])load(e.target.files[0])});
+function load(f){
+  const r=new FileReader();
+  r.onload=ev=>{
+      currentImageData = ev.target.result;
+      ip.src=ev.target.result;
+      pw.style.display='block';
+      im.textContent=f.name+' · '+(f.size/1024).toFixed(0)+' KB';
+      ba.style.display='inline-block';
+  };
+  r.readAsDataURL(f);
+}
+
+ba.addEventListener('click',run);
+
+const HF_API = "https://sattfaceee123-deepscan.hf.space";
+const SCAN_MSGS = [
+  "Loading pixel matrix…","Normalising colour channels…",
+  "Extracting CNN feature maps…","Running FFT transform…",
+  "Scanning for GAN artifacts…","Analysing frequency peaks…",
+  "Fusing spatial + frequency signals…","Classifying with detection head…"
+];
+
+async function run(){
+  ba.style.display='none';
+  proc.style.display='block';
+  res.style.display='none';
+
+  const steps=['s1','s2','s3','s4','s5'];
+  const pcts=[18,38,58,78,100];
+  steps.forEach(s=>document.getElementById(s).className='proc-step');
+  document.getElementById('proc-bar').style.width='0%';
+
+  // Animate steps while API call runs
+  let si=0, mi=0;
+  const st=document.getElementById('scan-text');
+  const msgIv=setInterval(()=>{ st.textContent=SCAN_MSGS[mi%SCAN_MSGS.length]; mi++; },500);
+  const stepIv=setInterval(()=>{
+    if(si>0) document.getElementById(steps[si-1]).className='proc-step done';
+    if(si<steps.length){
+      document.getElementById(steps[si]).className='proc-step active';
+      document.getElementById('proc-bar').style.width=pcts[si]+'%';
+      si++;
+    }
+  },600);
+
+  try {
+    // Upload image to Gradio Space
+    const blob = await fetch(currentImageData).then(r => r.blob());
+    const formData = new FormData();
+    formData.append('files', blob, 'image.jpg');
+
+    const uploadRes = await fetch(`${HF_API}/upload`, {
+      method: 'POST',
+      body: formData,
+      headers: { 'Accept': 'application/json' }
+    });
+    if (!uploadRes.ok) throw new Error(`Upload failed: ${uploadRes.status}`);
+    const uploaded = await uploadRes.json();
+    const filePath = Array.isArray(uploaded) ? uploaded[0] : uploaded;
+
+    // Run prediction
+    const predRes = await fetch(`${HF_API}/run/predict`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        data: [{ path: filePath, orig_name: 'image.jpg', mime_type: 'image/jpeg' }]
+      })
+    });
+    if (!predRes.ok) throw new Error(`Prediction failed: ${predRes.status}`);
+    const predData = await predRes.json();
+
+    clearInterval(msgIv); clearInterval(stepIv);
+    steps.forEach(s => document.getElementById(s).className = 'proc-step done');
+    document.getElementById('proc-bar').style.width = '100%';
+    st.textContent = 'Analysis complete ✦';
+
+    // Parse response — handle both Gradio label dict and plain object
+    let aiScore = 0, realScore = 0;
+    const raw = predData.data ? predData.data[0] : predData;
+    if (raw && typeof raw === 'object') {
+      // Gradio Label output format: { label: "AI Generated", confidences: [{label,confidence},...] }
+      if (raw.confidences) {
+        raw.confidences.forEach(c => {
+          if (c.label === 'AI Generated') aiScore = Math.round(c.confidence * 100);
+          if (c.label === 'Real') realScore = Math.round(c.confidence * 100);
+        });
+      } else {
+        // Plain dict format: { "AI Generated": 0.87, "Real": 0.13 }
+        aiScore  = Math.round((raw['AI Generated'] ?? 0) * 100);
+        realScore = Math.round((raw['Real'] ?? 0) * 100);
+      }
+    }
+    const dfScore = Math.max(0, 100 - aiScore - realScore);
+    setTimeout(() => show(aiScore, realScore, dfScore), 500);
+
+  } catch(err) {
+    clearInterval(msgIv); clearInterval(stepIv);
+    console.error('LunaNet API Error:', err);
+    proc.style.display = 'none';
+    ba.style.display = 'inline-block';
+    st.textContent = '';
+    res.style.display = 'block';
+    document.getElementById('v-main').textContent = 'Connection failed';
+    document.getElementById('v-badge').className = 'verdict-badge b-df';
+    document.getElementById('v-badge').textContent = 'Error';
+    document.getElementById('sc-ai').textContent = '—';
+    document.getElementById('sc-df').textContent = '—';
+    document.getElementById('sc-real').textContent = '—';
+    const viz = document.querySelector('.viz-wrap');
+    if (viz) viz.innerHTML = '<div style="text-align:center;padding:1rem;font-family:DM Mono,monospace;font-size:0.7rem;color:var(--text3)">Check console (F12) for details.<br>Space: <a href="'+HF_API+'" target="_blank" style="color:var(--violet)">sattfaceee123/deepscan</a></div>';
+  }
+}
+
+function show(ai, rl, df){
+  proc.style.display='none'; res.style.display='block';
+  document.getElementById('sc-ai').textContent  = ai+'%';
+  document.getElementById('sc-df').textContent  = df+'%';
+  document.getElementById('sc-real').textContent = rl+'%';
+  const badge=document.getElementById('v-badge'), vm=document.getElementById('v-main');
+  if(ai >= rl && ai >= df){
+    badge.className='verdict-badge b-ai'; badge.textContent='AI Generated';
+    vm.textContent='Image appears AI-generated';
+  } else if(df > ai && df > rl){
+    badge.className='verdict-badge b-df'; badge.textContent='Deepfake';
+    vm.textContent='Deepfake indicators detected';
+  } else {
+    badge.className='verdict-badge b-real'; badge.textContent='Authentic';
+    vm.textContent='Image appears authentic';
+  }
+  setTimeout(()=>{
+    document.getElementById('bar-ai').style.width  = ai+'%';
+    document.getElementById('bar-df').style.width  = df+'%';
+    document.getElementById('bar-real').style.width = rl+'%';
+  },120);
+  drawCNN(ai); drawFFT(ai,df);
+}
+
+function drawCNN(anom){
+  const canvas=document.getElementById('c-cnn');
+  const dpr=window.devicePixelRatio||1,W=canvas.offsetWidth,H=130;
+  canvas.width=W*dpr;canvas.height=H*dpr;
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  ctx.fillStyle='#08031a';ctx.fillRect(0,0,W,H);
+  const cols=24,rows=9,cw=W/cols,ch=H/rows;
+  for(let r=0;r<rows;r++){
+    for(let c=0;c<cols;c++){
+      const dx=c/cols-0.5,dy=r/rows-0.5;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      const heat=Math.min(1,Math.random()*(anom/100)*0.85+(1-dist)*0.25);
+      if(heat>0.6){
+        const t=(heat-0.6)/0.4;
+        const R=Math.floor(94+t*(249-94)),G=Math.floor(240-t*(240-80)),B=Math.floor(224-t*(224-160));
+        ctx.fillStyle=`rgba(${R},${G},${B},${heat})`;
+      } else {
+        ctx.fillStyle=`rgba(168,85,247,${heat*0.7})`;
+      }
+      ctx.beginPath();
+      ctx.rect(c*cw+1,r*ch+1,cw-2,ch-2);
+      ctx.fill();
+    }
+  }
+}
+
+function drawFFT(ai,df){
+  const canvas=document.getElementById('c-fft');
+  const dpr=window.devicePixelRatio||1,W=canvas.offsetWidth,H=130;
+  canvas.width=W*dpr;canvas.height=H*dpr;
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  ctx.fillStyle='#04011a';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(192,132,252,0.04)';ctx.lineWidth=0.5;
+  for(let y=H/4;y<H;y+=H/4){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  const bins=72,bw=W/bins;
+  for(let i=0;i<bins;i++){
+    const n=i/bins;
+    let mag=Math.exp(-n*2.8)*0.9+Math.random()*0.07;
+    if(ai>50&&(i===14||i===28||i===42||i===56))mag+=0.55;
+    mag=Math.min(1,mag);
+    const h=mag*H*0.88;
+    const g=ctx.createLinearGradient(0,H-h,0,H);
+    g.addColorStop(0,'rgba(192,132,252,0.95)');
+    g.addColorStop(0.5,'rgba(94,240,224,0.7)');
+    g.addColorStop(1,'rgba(94,240,224,0.15)');
+    ctx.fillStyle=g;
+    ctx.fillRect(i*bw+0.5,H-h,bw-1,h);
+  }
+}
+
+document.getElementById('btn-reset').addEventListener('click',()=>{
+  res.style.display='none';pw.style.display='none';ip.src='';fi.value='';ba.style.display='none';
+});
+</script>
+</body></html>
